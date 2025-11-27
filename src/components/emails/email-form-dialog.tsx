@@ -36,6 +36,7 @@ import { Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/lib/supabase/config";
 import { logAction } from "@/lib/actions/audit";
+import { triggerRefresh } from "@/lib/utils";
 
 interface EmailFormDialogProps {
   isOpen: boolean;
@@ -128,8 +129,8 @@ export function EmailFormDialog({
             const logDetails = `Đã cập nhật email '${email.email}'. Thay đổi: ${changes.join(', ')}.`;
             await logAction(user.id, user.email, "ALLOWED_EMAIL_UPDATED", logDetails);
             toast({ title: "Thành công", description: "Cập nhật email thành công." });
-            // Small delay to ensure database transaction is committed before subscription triggers
-            await new Promise(resolve => setTimeout(resolve, 100));
+            // Trigger refresh to update UI immediately
+            triggerRefresh('allowed_emails');
         } else {
              toast({ title: "Không có thay đổi", description: "Không có thông tin nào được cập nhật." });
         }
@@ -149,11 +150,10 @@ export function EmailFormDialog({
 
         await logAction(user.id, user.email, "ALLOWED_EMAIL_ADDED", `Đã thêm email '${values.email}' với vai trò '${values.role}'.`);
         toast({ title: "Thành công", description: "Thêm email thành công." });
+        // Trigger refresh to update UI immediately
+        triggerRefresh('allowed_emails');
       }
-      // Close dialog and let real-time subscription update the UI
       setIsOpen(false);
-      // Small delay to ensure database transaction is committed before subscription triggers
-      await new Promise(resolve => setTimeout(resolve, 100));
     } catch (error: any) {
       console.error(error);
       const actionType = email ? "cập nhật" : "thêm";

@@ -18,6 +18,7 @@ import { supabase } from "@/lib/supabase/config";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { LogOut } from "lucide-react";
+import { logAction } from "@/lib/actions/audit";
 
 export function UserButton() {
   const { user, loading } = useAuth();
@@ -26,6 +27,16 @@ export function UserButton() {
 
   const handleSignOut = async () => {
     try {
+      // Log logout action before signing out
+      if (user?.id && user?.email) {
+        try {
+          await logAction(user.id, user.email, "LOGOUT", "User logged out successfully.");
+        } catch (logError) {
+          // Don't block logout if audit log fails
+          console.warn("Could not write to audit log, but proceeding with logout:", logError);
+        }
+      }
+      
       await supabase.auth.signOut();
       toast({ title: "Đã đăng xuất", description: "Bạn đã đăng xuất thành công." });
       router.push("/login");

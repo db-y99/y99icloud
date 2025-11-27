@@ -17,6 +17,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { RotateCcw } from "lucide-react";
 import { supabase } from "@/lib/supabase/config";
 import { logAction } from "@/lib/actions/audit";
+import { triggerRefresh } from "@/lib/utils";
 
 interface PasswordHistoryDialogProps {
   isOpen: boolean;
@@ -88,6 +89,8 @@ export function PasswordHistoryDialog({
         `Đã khôi phục mật khẩu cũ cho tài khoản ${account.username}. Mật khẩu hiện tại đã được chuyển vào lịch sử.`
       );
       toast({ title: "Thành công", description: "Đã khôi phục mật khẩu." });
+      // Trigger refresh to update UI immediately
+      triggerRefresh('accounts');
       setIsOpen(false);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Không thể khôi phục mật khẩu.";

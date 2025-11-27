@@ -32,6 +32,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { generatePassword } from "@/ai/flows/generate-password-flow";
 import { supabase } from "@/lib/supabase/config";
 import { logAction } from "@/lib/actions/audit";
+import { triggerRefresh } from "@/lib/utils";
 
 interface AccountFormDialogProps {
   isOpen: boolean;
@@ -186,8 +187,8 @@ export function AccountFormDialog({
             const logDetails = `Đã cập nhật tài khoản ${account.username}. Thay đổi: ${changes.join(', ')}.`;
             await logAction(user.id, user.email, "ACCOUNT_UPDATED", logDetails);
             toast({ title: "Thành công", description: "Cập nhật tài khoản thành công." });
-            // Small delay to ensure database transaction is committed before subscription triggers
-            await new Promise(resolve => setTimeout(resolve, 100));
+            // Trigger refresh to update UI immediately
+            triggerRefresh('accounts');
         } else {
              toast({ title: "Không có thay đổi", description: "Không có thông tin nào được cập nhật." });
         }
@@ -211,8 +212,8 @@ export function AccountFormDialog({
 
         await logAction(user.id, user.email, "ACCOUNT_CREATED", `Đã tạo tài khoản mới: ${values.username}.`);
         toast({ title: "Thành công", description: "Tạo tài khoản thành công." });
-        // Small delay to ensure database transaction is committed before subscription triggers
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // Trigger refresh to update UI immediately
+        triggerRefresh('accounts');
       }
       setIsOpen(false);
     } catch (error) {

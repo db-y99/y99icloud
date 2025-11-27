@@ -13,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase/config";
 import { logAction } from "@/lib/actions/audit";
+import { triggerRefresh } from "@/lib/utils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -91,8 +92,8 @@ const TrashActionsCell = ({ row }: { row: { original: Account }}) => {
                 title: "Thành công",
                 description: `Đã khôi phục tài khoản '${account.username}'`,
             });
-            // Small delay to ensure database transaction is committed before subscription triggers
-            await new Promise(resolve => setTimeout(resolve, 100));
+            // Trigger refresh to update UI immediately
+            triggerRefresh('accounts');
         } catch (error) {
             toast({ variant: "destructive", title: "Lỗi", description: "Không thể khôi phục tài khoản." });
         }
@@ -127,8 +128,8 @@ const TrashActionsCell = ({ row }: { row: { original: Account }}) => {
                 title: "Thành công",
                 description: `Đã xóa vĩnh viễn tài khoản '${account.username}'`,
             });
-            // Small delay to ensure database transaction is committed before subscription triggers
-            await new Promise(resolve => setTimeout(resolve, 100));
+            // Trigger refresh to update UI immediately
+            triggerRefresh('accounts');
         } catch (error) {
             console.error("Permanent delete error:", error);
             toast({ variant: "destructive", title: "Lỗi", description: "Không thể xóa vĩnh viễn tài khoản." });

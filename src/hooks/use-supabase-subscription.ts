@@ -119,12 +119,12 @@ export function useSupabaseSubscription<T extends Record<string, any>>(
           if (isMountedRef.current) {
             console.log('Change received!', payload);
             // Immediately refetch data on any change to ensure UI is updated
-            // Use a small delay to ensure database transaction is committed
+            // Use a delay to ensure database transaction is committed
             setTimeout(() => {
               if (isMountedRef.current && fetchDataRef.current) {
                 fetchDataRef.current();
               }
-            }, 50);
+            }, 200);
           }
         }
       )
@@ -141,6 +141,26 @@ export function useSupabaseSubscription<T extends Record<string, any>>(
       }
     };
   }, [user, authLoading, tableName, queryString, fetchData]);
+
+  // Listen for custom refresh events
+  useEffect(() => {
+    const handleRefresh = (event: CustomEvent) => {
+      // Only refresh if the event is for this table or for all tables
+      if (event.detail?.table === tableName || !event.detail?.table) {
+        if (fetchDataRef.current) {
+          fetchDataRef.current();
+        }
+      }
+    };
+
+    window.addEventListener(`refresh-${tableName}` as any, handleRefresh as EventListener);
+    window.addEventListener('refresh-all' as any, handleRefresh as EventListener);
+
+    return () => {
+      window.removeEventListener(`refresh-${tableName}` as any, handleRefresh as EventListener);
+      window.removeEventListener('refresh-all' as any, handleRefresh as EventListener);
+    };
+  }, [tableName]);
 
   // Cleanup on unmount
   useEffect(() => {

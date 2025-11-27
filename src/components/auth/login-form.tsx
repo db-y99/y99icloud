@@ -6,7 +6,7 @@ import Image from "next/image";
 import { supabase } from "@/lib/supabase/config";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { logAction } from "@/lib/actions/audit";
 
@@ -14,6 +14,22 @@ export function LoginForm() {
   const [isProcessingLogin, setIsProcessingLogin] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Check for error message from URL (e.g., after middleware redirect)
+  useEffect(() => {
+    const error = searchParams.get('error');
+    if (error === 'email_not_allowed') {
+      toast({
+        variant: "destructive",
+        title: "Email không được phép",
+        description: "Email của bạn không nằm trong danh sách email được phép đăng nhập. Vui lòng liên hệ quản trị viên.",
+        duration: 5000,
+      });
+      // Remove error from URL
+      router.replace('/login');
+    }
+  }, [searchParams, toast, router]);
 
   const handleSuccessfulLogin = async (user: any) => {
     if (!user || !user.email) {
@@ -21,6 +37,8 @@ export function LoginForm() {
       return;
     }
 
+    // Không cần check email ở đây nữa vì AuthProvider đã check rồi
+    // Chỉ cần log action và redirect
     try {
         await logAction(user.id, user.email, "LOGIN_SUCCESS", "User logged in successfully.");
         toast({

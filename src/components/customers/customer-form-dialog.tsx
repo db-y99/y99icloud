@@ -30,6 +30,7 @@ import { Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/lib/supabase/config";
 import { logAction } from "@/lib/actions/audit";
+import { triggerRefresh } from "@/lib/utils";
 
 interface CustomerFormDialogProps {
   isOpen: boolean;
@@ -148,8 +149,9 @@ export function CustomerFormDialog({
             const logDetails = `Đã cập nhật khách hàng '${customer.name}' trong tài khoản ${accountUsername}. Thay đổi: ${changes.join(', ')}.`;
             await logAction(user.id, user.email, "CUSTOMER_UPDATED", logDetails);
             toast({ title: "Thành công", description: "Cập nhật khách hàng thành công." });
-            // Small delay to ensure database transaction is committed before subscription triggers
-            await new Promise(resolve => setTimeout(resolve, 100));
+            // Trigger refresh to update UI immediately
+            triggerRefresh('customers');
+            triggerRefresh('accounts'); // Also refresh accounts to update customer_count
         } else {
             toast({ title: "Không có thay đổi", description: "Không có thông tin nào được cập nhật." });
         }
@@ -169,8 +171,9 @@ export function CustomerFormDialog({
 
         await logAction(user.id, user.email, "CUSTOMER_CREATED", `Đã thêm khách hàng mới '${values.name}' vào tài khoản ${accountUsername}.`);
         toast({ title: "Thành công", description: "Thêm khách hàng thành công." });
-        // Small delay to ensure database transaction is committed before subscription triggers
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // Trigger refresh to update UI immediately
+        triggerRefresh('customers');
+        triggerRefresh('accounts'); // Also refresh accounts to update customer_count
       }
       setIsOpen(false);
     } catch (error) {

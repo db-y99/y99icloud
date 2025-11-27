@@ -96,6 +96,26 @@ export async function middleware(request: NextRequest) {
   // Protect routes that require authentication
   const { data: { user } } = await supabase.auth.getUser()
 
+  // Security: Check if authenticated user's email is in allowed_emails and is_active
+  // Chỉ check khi user đã authenticated và không phải là static assets
+  if (user && user.email && !request.nextUrl.pathname.startsWith('/_next')) {
+    const { data: allowedEmail } = await supabase
+      .from('allowed_emails')
+      .select('id')
+      .eq('email', user.email)
+      .eq('is_active', true)
+      .maybeSingle()
+
+    if (!allowedEmail) {
+      // User's email is not in allowed list or is inactive, sign them out
+      await supabase.auth.signOut()
+      // Redirect to login with error message
+      const loginUrl = new URL('/login', request.url)
+      loginUrl.searchParams.set('error', 'email_not_allowed')
+      return NextResponse.redirect(loginUrl)
+    }
+  }
+
   // Security: Redirect to login if accessing protected routes without authentication
   // Using safe redirect function to prevent SSRF
   if (!user && (

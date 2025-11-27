@@ -31,7 +31,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/lib/supabase/config";
 import { logAction } from "@/lib/actions/audit";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
+import { cn, triggerRefresh } from "@/lib/utils";
 import { getStatusText } from "@/lib/status-utils";
 import { ACCOUNT_STATUSES } from "@/lib/types";
 
@@ -159,8 +159,8 @@ const AccountActionsCell = ({ row, onEdit }: { row: { original: Account }, onEdi
         title: "Thành công",
         description: `Đã cập nhật trạng thái của '${account.username}'.`,
       });
-      // Small delay to ensure database transaction is committed before subscription triggers
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // Trigger refresh to update UI immediately
+      triggerRefresh('accounts');
     } catch (error) {
        toast({ variant: "destructive", title: "Lỗi", description: "Không thể cập nhật trạng thái." });
     }

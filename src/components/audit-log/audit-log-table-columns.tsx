@@ -15,8 +15,9 @@ const toDate = (value: string): Date => {
 
 const getBadgeVariantClass = (action: string) => {
     if (action.includes("CREATED") || action.includes("ACCOUNT_RESTORED")) return 'bg-blue-100 text-blue-800 border-blue-200';
-    if (action.includes("TRASHED")) return 'bg-red-100 text-red-800 border-red-200';
+    if (action.includes("TRASHED") || action.includes("DELETED")) return 'bg-red-100 text-red-800 border-red-200';
     if (action.includes("LOGIN")) return 'bg-green-100 text-green-800 border-green-200';
+    if (action.includes("LOGOUT")) return 'bg-orange-100 text-orange-800 border-orange-200';
     if (action.includes("PASSWORD_RESTORED")) return 'bg-yellow-100 text-yellow-800 border-yellow-200';
     // default for UPDATED, IMPORTED etc.
     return 'bg-gray-100 text-gray-800 border-gray-200';

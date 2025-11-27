@@ -19,6 +19,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { usePageActions } from "@/contexts/page-actions-context";
 import { useSupabaseSubscription } from "@/hooks/use-supabase-subscription";
 import { logAction } from "@/lib/actions/audit";
+import { triggerRefresh } from "@/lib/utils";
 import {
   Tooltip,
   TooltipContent,
@@ -190,6 +191,9 @@ export default function AccountTableClient() {
                   title: "Nhập hoàn tất",
                   description: `${accountsToAdd.length} tài khoản đã được thêm. ${skippedCount} tài khoản trùng lặp hoặc không hợp lệ đã được bỏ qua.`,
               });
+              
+              // Trigger refresh to update UI immediately
+              triggerRefresh('accounts');
 
             } catch (error) {
               console.error("Import error:", error);

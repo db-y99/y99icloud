@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/lib/supabase/config";
 import { logAction } from "@/lib/actions/audit";
+import { triggerRefresh } from "@/lib/utils";
 
 interface GetColumnsProps {
   onEdit: (email: AllowedEmail) => void;
@@ -77,8 +78,8 @@ const EmailActionsCell = ({ row, onEdit }: { row: { original: AllowedEmail }, on
         title: "Thành công",
         description: `Đã ${actionText} email '${email.email}'.`,
       });
-      // Small delay to ensure database transaction is committed before subscription triggers
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // Trigger refresh to update UI immediately
+      triggerRefresh('allowed_emails');
     } catch (error) {
       toast({ variant: "destructive", title: "Lỗi", description: "Không thể thay đổi trạng thái email." });
     }
@@ -103,8 +104,8 @@ const EmailActionsCell = ({ row, onEdit }: { row: { original: AllowedEmail }, on
         title: "Thành công",
         description: `Đã xóa email '${email.email}'.`,
       });
-      // Small delay to ensure database transaction is committed before subscription triggers
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // Trigger refresh to update UI immediately
+      triggerRefresh('allowed_emails');
     } catch (error) {
       toast({ variant: "destructive", title: "Lỗi", description: "Không thể xóa email." });
     }
