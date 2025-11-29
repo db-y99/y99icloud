@@ -14,11 +14,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "../ui/skeleton";
 import packageJson from "../../../package.json";
-import { supabase } from "@/lib/supabase/config";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { LogOut } from "lucide-react";
-import { logAction } from "@/lib/actions/audit";
+import { handleLogout } from "@/lib/auth/logout";
 
 export function UserButton() {
   const { user, loading } = useAuth();
@@ -27,19 +26,19 @@ export function UserButton() {
 
   const handleSignOut = async () => {
     try {
-      // Log logout action before signing out
-      if (user?.id && user?.email) {
-        try {
-          await logAction(user.id, user.email, "LOGOUT", "User logged out successfully.");
-        } catch (logError) {
-          // Don't block logout if audit log fails
-          console.warn("Could not write to audit log, but proceeding with logout:", logError);
-        }
-      }
+      const result = await handleLogout(user);
       
-      await supabase.auth.signOut();
-      toast({ title: "Đã đăng xuất", description: "Bạn đã đăng xuất thành công." });
-      router.push("/login");
+      if (result.success) {
+        toast({ title: "Đã đăng xuất", description: "Bạn đã đăng xuất thành công." });
+        router.push("/login");
+        router.refresh(); // Refresh to clear any cached state
+      } else {
+        toast({ 
+          variant: "destructive", 
+          title: "Lỗi", 
+          description: result.error || "Không thể đăng xuất." 
+        });
+      }
     } catch (error) {
       console.error("Sign out error", error);
       toast({ variant: "destructive", title: "Lỗi", description: "Không thể đăng xuất." });

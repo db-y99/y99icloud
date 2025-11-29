@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -8,13 +7,14 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
-import { logAction } from "@/lib/actions/audit";
+import { useAuth } from "@/hooks/use-auth";
 
 export function LoginForm() {
   const [isProcessingLogin, setIsProcessingLogin] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { user, loading: authLoading } = useAuth();
 
   // Check for error message from URL (e.g., after middleware redirect)
   useEffect(() => {
@@ -31,43 +31,12 @@ export function LoginForm() {
     }
   }, [searchParams, toast, router]);
 
-  const handleSuccessfulLogin = async (user: any) => {
-    if (!user || !user.email) {
-      setIsProcessingLogin(false);
-      return;
-    }
-
-    // Không cần check email ở đây nữa vì AuthProvider đã check rồi
-    // Chỉ cần log action và redirect
-    try {
-        await logAction(user.id, user.email, "LOGIN_SUCCESS", "User logged in successfully.");
-        toast({
-          title: "Đăng nhập thành công",
-          description: `Chào mừng, ${user.user_metadata?.full_name || user.email}!`,
-        });
-        router.push("/");
-    } catch (e) {
-        console.warn("Could not write to audit log, but proceeding with login:", e);
-        toast({
-          title: "Đăng nhập thành công",
-          description: `Chào mừng, ${user.user_metadata?.full_name || user.email}!`,
-        });
-        router.push("/");
-    }
-  }
-
+  // Redirect if already logged in
   useEffect(() => {
-    // Check if user is already logged in
-    const checkUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        await handleSuccessfulLogin(user);
-      } else {
-        setIsProcessingLogin(false);
-      }
-    };
-    checkUser();
-  }, []);
+    if (!authLoading && user) {
+      router.push("/");
+    }
+  }, [user, authLoading, router]);
 
   const handleGoogleSignIn = async () => {
     setIsProcessingLogin(true);
@@ -87,24 +56,36 @@ export function LoginForm() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/`
+          redirectTo: `${window.location.origin}/auth/callback`
         }
       });
 
       if (error) {
         throw error;
       }
+      // Note: User will be redirected to OAuth provider, so we don't reset isProcessingLogin here
     } catch (error: any) {
       console.error("Google Sign-In Error:", error);
       toast({
         variant: "destructive",
         title: "Lỗi đăng nhập",
-        description: "Đã xảy ra lỗi trong quá trình đăng nhập. Vui lòng thử lại.",
+        description: error?.message || "Đã xảy ra lỗi trong quá trình đăng nhập. Vui lòng thử lại.",
         duration: 5000,
       });
       setIsProcessingLogin(false);
     }
   };
+
+  // Show loading state while checking auth
+  if (authLoading) {
+    return (
+      <div className="w-full max-w-md p-8 space-y-6 bg-card rounded-lg shadow-lg border">
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-md p-8 space-y-6 bg-card rounded-lg shadow-lg border">

@@ -6,7 +6,6 @@ import { PageActionsProvider } from "@/contexts/page-actions-context";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect } from "react";
-import { Skeleton } from "../ui/skeleton";
 import { Loader2 } from "lucide-react";
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
@@ -15,14 +14,19 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
-    if (!loading && !user) {
+    // Redirect to login if not authenticated (middleware handles this too, but this provides client-side fallback)
+    if (!loading && !user && pathname !== '/login') {
       router.push("/login");
     }
-  }, [user, loading, router]);
+    
+    // Redirect to home if authenticated and on login page
+    if (!loading && user && pathname === '/login') {
+      router.push("/");
+    }
+  }, [user, loading, router, pathname]);
 
-  if (loading || !user) {
-    // This is a global loading state for when auth is being checked.
-    // It prevents a flash of the login page on a refresh when logged in.
+  // Show loading state while checking auth
+  if (loading) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -30,13 +34,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // If the user is logged in but tries to access the login page, redirect them to home.
-  if (pathname === '/login') {
-    router.push('/');
+  // Don't render layout if user is not authenticated (will redirect)
+  if (!user) {
     return (
-         <div className="flex h-screen w-full items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-         </div>
+      <div className="flex h-screen w-full items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
     );
   }
 
