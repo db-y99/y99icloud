@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
             queryBuilder = queryBuilder.is(column, value);
             break;
           case 'isNot':
-            queryBuilder = queryBuilder.is(column, value, { foreignTable: undefined });
+            queryBuilder = queryBuilder.not(column, 'is', value);
             break;
         }
       });
@@ -149,6 +149,9 @@ export async function POST(request: NextRequest) {
               case 'is':
                 updateQuery = updateQuery.is(column, value);
                 break;
+              case 'isNot':
+                updateQuery = updateQuery.not(column, 'is', value);
+                break;
             }
           });
         }
@@ -190,6 +193,9 @@ export async function POST(request: NextRequest) {
                 break;
               case 'is':
                 deleteQuery = deleteQuery.is(column, value);
+                break;
+              case 'isNot':
+                deleteQuery = deleteQuery.not(column, 'is', value);
                 break;
             }
           });
