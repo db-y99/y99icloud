@@ -11,8 +11,7 @@ import { useAuth } from "@/hooks/use-auth";
 import Link from "next/link";
 import { ColumnDef } from "@tanstack/react-table";
 import { format, isValid } from "date-fns";
-import { supabase } from "@/lib/supabase/config";
-import { useSupabaseSubscription } from "@/hooks/use-supabase-subscription";
+import { apiSelect } from "@/lib/api-client";
 
 interface EnrichedCustomer extends Customer {
   accountId: string;
@@ -83,19 +82,20 @@ export default function AllCustomersTableClient() {
     if (!user || !isMountedRef.current) return;
     setLoading(true);
     try {
-        const { data, error } = await supabase
-            .from('customers')
-            .select(`
+        // Sử dụng API client để ẩn Supabase URL
+        const { data, error } = await apiSelect<Customer & { accounts?: { id: number; username: string } }>('customers', {
+            select: `
                 *,
                 accounts:account_id (
                     id,
                     username
                 )
-            `)
-            .order('created_at', { ascending: false })
-            .limit(100);
+            `,
+            orderBy: { column: 'created_at', ascending: false },
+            limit: 100
+        });
 
-        if (error) throw error;
+        if (error) throw new Error(error);
 
         if (!isMountedRef.current) return;
 

@@ -4,6 +4,8 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/lib/supabase/config";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
+import { apiSelect } from "@/lib/api-client";
+import { convertCommonFilters } from "@/lib/filter-converter";
 
 /**
  * A robust, shared hook for subscribing to a Supabase table.
@@ -33,10 +35,42 @@ export function useSupabaseSubscription<T extends Record<string, any>>(
   const queryString = JSON.stringify(query);
 
   // Debounced fetch function to prevent too many requests
+  // Sử dụng API routes để ẩn Supabase URLs
   const fetchData = useCallback(async () => {
     if (!isMountedRef.current) return;
 
     try {
+      // Convert filter function to filters array for API (nếu có thể)
+      let filters: Array<{ column: string; operator: string; value: any }> | null = null;
+      
+      if (query?.filter) {
+        // Thử convert filter function thành filter objects
+        filters = convertCommonFilters(query.filter, tableName);
+      }
+
+      // Nếu có thể convert filters, sử dụng API route (ẩn URL)
+      if (filters !== null || !query?.filter) {
+        try {
+          const { data: initialData, error } = await apiSelect<T>(tableName, {
+            select: query?.select,
+            filters: filters || undefined,
+            orderBy: query?.orderBy,
+          });
+
+          if (!isMountedRef.current) return;
+
+          if (error) throw new Error(error);
+          
+          setData((initialData || []) as unknown as T[]);
+          setLoading(false);
+          return;
+        } catch (apiError) {
+          // Nếu API route fail, fallback về Supabase
+          console.warn('API route failed, falling back to direct Supabase call:', apiError);
+        }
+      }
+
+      // Fallback: Sử dụng Supabase trực tiếp (cho complex filters hoặc khi API fail)
       let queryBuilder = supabase
         .from(tableName)
         .select(query?.select || '*');

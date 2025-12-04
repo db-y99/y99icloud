@@ -72,6 +72,14 @@ const nextConfig: NextConfig = {
               "upgrade-insecure-requests"
             ].join('; ')
           },
+          {
+            key: 'X-Request-ID',
+            value: 'hidden'
+          },
+          {
+            key: 'Server',
+            value: ''
+          },
         ],
       },
     ];

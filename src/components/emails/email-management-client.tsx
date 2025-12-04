@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useCallback, useMemo, useEffect, useRef } from "react";
-import { supabase } from "@/lib/supabase/config";
 import type { AllowedEmail, AllowedEmailFormValues } from "@/lib/types.tsx";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, ShieldAlert } from "lucide-react";

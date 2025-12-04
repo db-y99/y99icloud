@@ -14,7 +14,7 @@ import { MoreHorizontal, Edit, Trash2, CheckCircle, XCircle } from "lucide-react
 import { format, isValid } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
-import { supabase } from "@/lib/supabase/config";
+import { apiUpdate, apiDelete } from "@/lib/api-client";
 import { logAction } from "@/lib/actions/audit";
 import { triggerRefresh } from "@/lib/utils";
 
@@ -63,12 +63,15 @@ const EmailActionsCell = ({ row, onEdit }: { row: { original: AllowedEmail }, on
     }
 
     try {
-      const { error } = await supabase
-        .from('allowed_emails')
-        .update({ is_active: !email.is_active })
-        .eq('id', email.id);
+      // Sử dụng API client để ẩn Supabase URL
+      const { error } = await apiUpdate('allowed_emails', {
+        data: { is_active: !email.is_active },
+        filters: [
+          { column: 'id', operator: 'eq', value: email.id }
+        ]
+      });
 
-      if (error) throw error;
+      if (error) throw new Error(error);
 
       const action = email.is_active ? "ALLOWED_EMAIL_DEACTIVATED" : "ALLOWED_EMAIL_ACTIVATED";
       const actionText = email.is_active ? "vô hiệu hóa" : "kích hoạt lại";
@@ -92,12 +95,12 @@ const EmailActionsCell = ({ row, onEdit }: { row: { original: AllowedEmail }, on
     }
 
     try {
-      const { error } = await supabase
-        .from('allowed_emails')
-        .delete()
-        .eq('id', email.id);
+      // Sử dụng API client để ẩn Supabase URL
+      const { error } = await apiDelete('allowed_emails', [
+        { column: 'id', operator: 'eq', value: email.id }
+      ]);
 
-      if (error) throw error;
+      if (error) throw new Error(error);
 
       await logAction(user.id, user.email, "ALLOWED_EMAIL_DELETED", `Đã xóa email '${email.email}' khỏi danh sách cho phép.`);
       toast({

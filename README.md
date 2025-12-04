@@ -40,6 +40,8 @@ npm run dev
 - [Database Setup](./setup-database.sql)
 - [Update Security](./update-security-policies.sql)
 - [Google OAuth Setup](./GOOGLE_OAUTH_SETUP.md)
+- [Hide URLs Guide](./docs/hide-urls-guide.md) - Hướng dẫn ẩn request URLs
+- [Migration Example](./docs/migration-example.md) - Ví dụ chuyển đổi code
 
 ## 🎯 Features
 
@@ -60,3 +62,9 @@ npm run dev
 - **Initial owners**: `khaitq.it@y99.vn`, `khoatb.cs@y99.vn`, `sy@y99.vn`
 - **Roles**: Owner (toàn quyền), Admin, User
 - **Audit logging** cho tất cả thay đổi
+
+**URL Obfuscation:**
+- ✅ API Proxy Routes để ẩn Supabase URLs
+- ✅ Security headers để ẩn request information
+- ✅ Obfuscated config cho sensitive data
+- 📖 Xem [Hide URLs Guide](./docs/hide-urls-guide.md) để biết thêm chi tiết

@@ -34,7 +34,7 @@ import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
-import { supabase } from "@/lib/supabase/config";
+import { apiInsert, apiUpdate } from "@/lib/api-client";
 import { logAction } from "@/lib/actions/audit";
 import { triggerRefresh } from "@/lib/utils";
 
@@ -119,12 +119,15 @@ export function EmailFormDialog({
         }
 
         if (changes.length > 0) {
-            const { error } = await supabase
-              .from('allowed_emails')
-              .update(dataToUpdate)
-              .eq('id', email.id);
+            // Sử dụng API client để ẩn Supabase URL
+            const { error } = await apiUpdate('allowed_emails', {
+              data: dataToUpdate,
+              filters: [
+                { column: 'id', operator: 'eq', value: email.id }
+              ]
+            });
 
-            if (error) throw error;
+            if (error) throw new Error(error);
 
             const logDetails = `Đã cập nhật email '${email.email}'. Thay đổi: ${changes.join(', ')}.`;
             await logAction(user.id, user.email, "ALLOWED_EMAIL_UPDATED", logDetails);
@@ -136,17 +139,17 @@ export function EmailFormDialog({
         }
 
       } else {
-        // Create email
-        const { error } = await supabase
-          .from('allowed_emails')
-          .insert({
+        // Create email - Sử dụng API client để ẩn Supabase URL
+        const { error } = await apiInsert('allowed_emails', {
+          data: {
             email: values.email,
             role: values.role,
             added_by: user.email,
             notes: values.notes || null,
-          });
+          }
+        });
 
-        if (error) throw error;
+        if (error) throw new Error(error);
 
         await logAction(user.id, user.email, "ALLOWED_EMAIL_ADDED", `Đã thêm email '${values.email}' với vai trò '${values.role}'.`);
         toast({ title: "Thành công", description: "Thêm email thành công." });
