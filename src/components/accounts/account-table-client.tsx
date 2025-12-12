@@ -19,7 +19,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { usePageActions } from "@/contexts/page-actions-context";
 import { useSupabaseSubscription } from "@/hooks/use-supabase-subscription";
 import { logAction } from "@/lib/actions/audit";
-import { triggerRefresh } from "@/lib/utils";
+import { triggerRefresh, cn } from "@/lib/utils";
 import {
   Tooltip,
   TooltipContent,
@@ -235,23 +235,45 @@ export default function AccountTableClient() {
       {
         accessorKey: "status",
         header: "Trạng thái",
-        cell: ({ row }: { row: { original: Account } }) => (
-          <div className="flex items-center justify-center">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger>
-                  {getStatusIcon(row.original.status)}
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{getStatusText(row.original.status)}</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-        ),
+        cell: ({ row }: { row: { original: Account } }) => {
+          const status = row.original.status;
+          const statusInfo = ACCOUNT_STATUSES.find(s => s.status === status) || ACCOUNT_STATUSES[0];
+          
+          // Map status to badge color classes
+          const getBadgeClass = (status: AccountStatus) => {
+            switch (status) {
+              case 'active':
+                return 'bg-green-100 text-green-800 border-green-200 hover:bg-green-200';
+              case 'inactive':
+                return 'bg-red-100 text-red-800 border-red-200 hover:bg-red-200';
+              case 'pending':
+                return 'bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-200';
+              case 'in_period':
+                return 'bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200';
+              case 'expired_period':
+                return 'bg-orange-100 text-orange-800 border-orange-200 hover:bg-orange-200';
+              default:
+                return 'bg-gray-100 text-gray-800 border-gray-200';
+            }
+          };
+          
+          return (
+            <div className="flex items-center justify-center">
+              <Badge 
+                variant="outline" 
+                className={getBadgeClass(status)}
+              >
+                <div className="flex items-center gap-1.5">
+                  {statusInfo.icon}
+                  <span>{statusInfo.label}</span>
+                </div>
+              </Badge>
+            </div>
+          );
+        },
         meta: {
-          headerClassName: "text-center w-[120px]",
-          cellClassName: "text-center w-[120px]",
+          headerClassName: "text-center w-[180px]",
+          cellClassName: "text-center w-[180px]",
         },
       },
       {
@@ -260,7 +282,7 @@ export default function AccountTableClient() {
         cell: ({ row }: { row: { original: Account } }) => (
           <div className="flex items-center justify-center gap-2">
             <Users className="h-4 w-4 text-muted-foreground" />
-            <Badge variant="default">{row.original.customer_count || 0}</Badge>
+            <span>{row.original.customer_count || 0}</span>
           </div>
         ),
         meta: {

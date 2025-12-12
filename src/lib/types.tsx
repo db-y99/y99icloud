@@ -1,8 +1,8 @@
 
 import type { ReactNode } from "react";
-import { CheckCircle2, XCircle, Clock } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, CalendarCheck, CalendarX } from "lucide-react";
 
-export type AccountStatus = 'active' | 'inactive' | 'pending';
+export type AccountStatus = 'active' | 'inactive' | 'pending' | 'in_period' | 'expired_period';
 
 export interface AccountStatusInfo {
   status: AccountStatus;
@@ -29,6 +29,18 @@ export const ACCOUNT_STATUSES: AccountStatusInfo[] = [
     label: 'Chờ kích hoạt', 
     icon: <Clock className="h-4 w-4 text-yellow-500" />,
     className: "text-yellow-600 focus:text-yellow-600 focus:bg-yellow-50"
+  },
+  { 
+    status: 'in_period', 
+    label: 'Khách đang dùng', 
+    icon: <CalendarCheck className="h-4 w-4 text-blue-500" />,
+    className: "text-blue-600 focus:text-blue-600 focus:bg-blue-50"
+  },
+  { 
+    status: 'expired_period', 
+    label: 'Khách quá hạn', 
+    icon: <CalendarX className="h-4 w-4 text-orange-500" />,
+    className: "text-orange-600 focus:text-orange-600 focus:bg-orange-50"
   },
 ];
 
@@ -78,20 +90,4 @@ export interface AuditLog {
   action: string;
   details: string;
   timestamp: string;
-}
-
-export interface AllowedEmail {
-  id: number;
-  email: string;
-  role: 'owner' | 'admin' | 'user';
-  added_by: string;
-  added_at: string;
-  is_active: boolean;
-  notes?: string;
-}
-
-export type AllowedEmailFormValues = {
-  email: string;
-  role: 'owner' | 'admin' | 'user';
-  notes?: string;
 }

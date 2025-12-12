@@ -162,7 +162,13 @@ const AccountActionsCell = ({ row, onEdit }: { row: { original: Account }, onEdi
       // Trigger refresh to update UI immediately
       triggerRefresh('accounts');
     } catch (error) {
-       toast({ variant: "destructive", title: "Lỗi", description: "Không thể cập nhật trạng thái." });
+      console.error('Error updating status:', error);
+      const errorMessage = error instanceof Error ? error.message : "Không thể cập nhật trạng thái.";
+      toast({ 
+        variant: "destructive", 
+        title: "Lỗi", 
+        description: errorMessage 
+      });
     }
   }
 
