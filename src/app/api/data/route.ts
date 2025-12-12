@@ -113,8 +113,8 @@ export async function POST(request: NextRequest) {
             { status: 400 }
           );
         }
-        // For update, apply filters to base query builder
-        let updateQuery: any = supabase.from(table);
+        // For update, call update() first, then apply filters
+        let updateQuery: any = supabase.from(table).update(data);
         if (filters && Array.isArray(filters)) {
           filters.forEach((filter: any) => {
             const { column, operator, value } = filter;
@@ -155,11 +155,11 @@ export async function POST(request: NextRequest) {
             }
           });
         }
-        result = await updateQuery.update(data);
+        result = await updateQuery;
         break;
       case 'delete':
-        // For delete, apply filters to base query builder
-        let deleteQuery: any = supabase.from(table);
+        // For delete, call delete() first, then apply filters
+        let deleteQuery: any = supabase.from(table).delete();
         if (filters && Array.isArray(filters)) {
           filters.forEach((filter: any) => {
             const { column, operator, value } = filter;
@@ -200,7 +200,7 @@ export async function POST(request: NextRequest) {
             }
           });
         }
-        result = await deleteQuery.delete();
+        result = await deleteQuery;
         break;
       default:
         return NextResponse.json(

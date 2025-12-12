@@ -91,3 +91,15 @@ export interface AuditLog {
   details: string;
   timestamp: string;
 }
+
+export interface AllowedEmail {
+  id: string;
+  email: string;
+  role: 'owner' | 'admin' | 'user';
+  notes?: string | null;
+  added_by: string;
+  added_at: string;
+  is_active: boolean;
+}
+
+export type AllowedEmailFormValues = Omit<AllowedEmail, "id" | "added_by" | "added_at" | "is_active">;
